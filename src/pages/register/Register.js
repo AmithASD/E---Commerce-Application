@@ -1,0 +1,148 @@
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import {
+    CButton,
+    CCard,
+    CCardBody,
+    CCol,
+    CContainer,
+    CForm,
+    CFormInput,
+    CFormLabel,
+    CInputGroup,
+    CInputGroupText,
+    CRow,
+} from '@coreui/react';
+import CIcon from '@coreui/icons-react';
+import { cilLockLocked, cilUser } from '@coreui/icons';
+import API_ENDPOINT from '../../apis/config';
+import { SIGN_UP } from '../../apis/endPoints';
+
+const Register = () => {
+
+    const [formData, setFormData] = useState({
+        email: '',
+        password: '',
+    });
+
+    const [errors, setErrors] = useState({});
+
+    // Handle input changes
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
+
+    // Validate form inputs
+    const validateForm = () => {
+        const newErrors = {};
+        if (!formData.email) newErrors.email = 'Email is required';
+        if (!formData.password) newErrors.password = 'Password is required';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    // Handle form submission
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!validateForm()) {
+            return;
+        }
+
+        try {
+            const response = await API_ENDPOINT.post(SIGN_UP, formData);
+            const data = response.data;
+
+            // Save token and user ID in local storage
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('userId', data.userId);
+
+            // Redirect on successful login
+            if (response.status === 200) {
+                window.location.href = '/products';
+            }
+        } catch (error) {
+            console.error('Error logging in:', error);
+            setErrors({ form: 'Login failed. Please check your credentials.' });
+        }
+    };
+
+    return (
+        <div className="login-background min-vh-100 d-flex align-items-center" style={{display:'flex', alignItems:'center' , justifyContent:"center"}}>
+            <CContainer style={{border:'1px solid blue', display:'flex', alignItems:'center' , justifyContent:"center", width:'400px', marginTop:"50px", height:'400px'}}>
+                <CRow className="justify-content-end">
+                    <CCol md={5} lg={5} className="login-form">
+                        <CCard className="p-4">
+                            <CCardBody>
+                                <CForm onSubmit={handleSubmit} noValidate>
+                                    <h1>Sign Up</h1>
+                                    <p className="text-body-secondary">Create an account</p>
+                                    {/* Display form-level error */}
+                                    {errors.form && (
+                                        <div className="text-danger mb-3">{errors.form}</div>
+                                    )}
+
+                                    {/* Email Input */}
+                                    <CInputGroup className="mb-3">
+                                        <CInputGroupText>
+                                        <CFormLabel >Email : </CFormLabel>
+                                        </CInputGroupText>
+                                        <CFormInput
+                                            name="email"
+                                            type="email"
+                                            placeholder="Email"
+                                            value={formData.email}
+                                            onChange={handleChange}
+                                            required
+                                        />
+                                        {errors.email && (
+                                            <div className="text-danger">{errors.email}</div>
+                                        )}
+                                    </CInputGroup>
+
+                                    {/* Password Input */}
+                                    <CInputGroup className="mb-4">
+                                        <CInputGroupText>
+                                        <CFormLabel >Password :</CFormLabel>
+                                        </CInputGroupText>
+                                        <CFormInput
+                                            name="password"
+                                            type="password"
+                                            placeholder="Password"
+                                            value={formData.password}
+                                            onChange={handleChange}
+                                            required
+                                        />
+                                        {errors.password && (
+                                            <div className="text-danger">{errors.password}</div>
+                                        )}
+                                    </CInputGroup>
+
+                                    {/* Submit and Links */}
+                                    <CRow>
+                                        <CCol xs={6}>
+                                            <CButton
+                                                color="primary"
+                                                className="px-4"
+                                                type="submit"
+                                            >
+                                                Sign Up
+                                            </CButton>
+                                        </CCol>
+                                        <CCol xs={12} className="text-center mt-3">
+                                            already have an account?{' '}
+                                            <Link to="/login">Sign In</Link>
+                                        </CCol>
+                                    </CRow>
+                                </CForm>
+                            </CCardBody>
+                        </CCard>
+                    </CCol>
+                </CRow>
+            </CContainer>
+        </div>
+  )
+}
+
+export default Register
